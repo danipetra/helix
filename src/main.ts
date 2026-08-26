@@ -13,10 +13,12 @@ const camera : THREE.PerspectiveCamera = new THREE.PerspectiveCamera(50, window.
 camera.position.set(0, 4, 12);
 camera.lookAt(0, -2, 0);
 
-// create the WebGL renderer with antialiasing enabled
+// create the WebGL renderer with antialiasing and transparency enabed
 const renderer : THREE.WebGLRenderer = new THREE.WebGLRenderer({
-    antialias : true
+    antialias   : true,
+    alpha       : true  
 });
+renderer.setClearColor(0x000000, 0);
 
 // set the renderer size to match the window
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -71,6 +73,10 @@ const platformGroup : THREE.Group = new THREE.Group();
 // add the platform group to the scene
 scene.add(platformGroup);
 
+// create and add to the scene a group to be used as graveyard
+const platformGraveyard: THREE.Group = new THREE.Group();
+scene.add(platformGraveyard);
+
 // build the platforms
 for (let i : number = 0; i < GameOptions.totalPlaftforms; i ++) {
 
@@ -108,6 +114,12 @@ const clock : THREE.Clock = new THREE.Clock();
 // boolean variable to check if the game is over
 let gameOver : boolean = false;
 
+// HTML element with the score. The id must macth the id in index.html file
+const scoreElement : HTMLElement = document.getElementById('score') as HTMLElement;
+
+// variable to save the score
+let score : number = 0;
+
 // function to be executed at each frame
 function update() : void {
 
@@ -133,8 +145,8 @@ function update() : void {
     const targetY = topPlatform.position.y + 4;
 
     // lerp camera position and direction. Some hardcoded values here, will optimize a bit later
-    camera.position.y = THREE.MathUtils.lerp(currentCameraY, targetY, 0.01);
-    camera.lookAt(0, THREE.MathUtils.lerp(currentCameraY - 6, topPlatform.position.y - 2, 0.01), 0);
+    camera.position.y = THREE.MathUtils.lerp(currentCameraY, targetY, 0.03);
+    camera.lookAt(0, THREE.MathUtils.lerp(currentCameraY - 6, topPlatform.position.y - 2, 0.03), 0);
     
     // make light follow the camera
     light.position.y = camera.position.y + 6;
@@ -163,6 +175,9 @@ function update() : void {
 
     // apply rotation to the platform group
     platformGroup.rotation.y += rotateDirection * GameOptions.rotationSpeed * delta;
+
+    // apply rotation to the graveyard group
+    platformGraveyard.rotation.y += rotateDirection * GameOptions.rotationSpeed * delta;
 
     // update ball position
     ball.update(delta);
@@ -197,7 +212,7 @@ function update() : void {
                 duration    : 2,                                                            // duration, in seconds
                 ease        : 'power2.out',                                                 // easing
                 onUpdate : () => {                                                          // function to be executed at each update
-                    camera.lookAt(ball.position.x, ball.position.y, ball.position.z);
+                    camera.lookAt(ball.position.x, ball.position.y, ball.position.z);       // update camera to look at the ball
                 }
             });
 
@@ -210,6 +225,10 @@ function update() : void {
             });
 
             setTimeout(() => {
+
+                // set score to zero
+                score = 0;
+                scoreElement.textContent = '0';
 
                 // reset gameOver flag
                 gameOver = false;
@@ -263,9 +282,13 @@ function update() : void {
             // if start angle is less than end angle, it means the interval includes zero, ball's position. Which should now fall
             if (startAngle < endAngle) {
                 
-                // remove the platform from the group and scene
+                // remove the platform from the group
                 platformGroup.remove(topmostPlatform);
-                scene.remove(topmostPlatform);
+
+                // add the platform to platform graveyard
+                platformGraveyard.add(topmostPlatform);
+
+                topmostPlatform.fadeAndRemove(platformGraveyard);
 
                 // move the column down to pretend it's endless
                 column.position.y -= GameOptions.platformGap;
@@ -274,7 +297,11 @@ function update() : void {
                 const lastPlatform : Platform = platformGroup.children[platformGroup.children.length - 1] as Platform;
                 const newY : number = lastPlatform.position.y - GameOptions.platformGap;
                 const newPlatform : Platform = new Platform(newY, true);
-                platformGroup.add(newPlatform);                
+                platformGroup.add(newPlatform);   
+                
+                // increase the score
+                score ++;
+                scoreElement.textContent = score.toString();
             }
 
             // if not, make the ball bounce

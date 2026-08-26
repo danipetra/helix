@@ -1,4 +1,5 @@
 import * as THREE from 'three';                 // import all THREE.js components
+import { gsap } from 'gsap';                    // import the GSAP library used for tween-based animations
 import { GameOptions } from './gameOptions';    // import game options
 
 // Platform class extends THREE.Group
@@ -104,5 +105,34 @@ export class Platform extends THREE.Group {
            
         // rotate the platform around the column
         this.rotation.y = angle;
+    }
+
+    // method to remove a platform
+    // parentGroup: platform's parent group
+    fadeAndRemove(parentGroup : THREE.Group) : void {
+
+        // loop through all platform children
+        this.children.forEach((child : THREE.Object3D) => {
+            
+            // in this case, we know all children are meshes, so let's force Mesh type
+            const childMesh : THREE.Mesh = child as THREE.Mesh;
+           
+            // get the standard material
+            const material : THREE.MeshStandardMaterial = childMesh.material as THREE.MeshStandardMaterial;
+            
+            // change material color to white
+            material.color.set(0xffffff);
+           
+        });
+
+        // use GSAP to move the platform up
+        gsap.to(this.position, {
+            y           : this.position.y + 5,  // new y position
+            duration    : 1,                    // duration, in seconds
+            ease        : 'power2.out',         // easing
+            onComplete  : () => {               // callback function to be executed once the tween has been completed
+                parentGroup.remove(this);       // remove the platform
+            }
+        });
     }
 }
