@@ -1,0 +1,20 @@
+{
+  "name": "trailblazer",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 8080 --open",
+    "build": "tsc && vite build",
+    "preview": "vite preview --port 8080 --open"
+  },
+  "devDependencies": {
+    "@types/three": "^0.175.0",
+    "terser": "^5.39.0",
+    "typescript": "~5.7.2",
+    "vite": "^6.2.0"
+  },
+  "dependencies": {
+    "three": "^0.175.0"
+  }
+}
