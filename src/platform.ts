@@ -3,6 +3,8 @@ import { GameOptions } from './gameOptions';    // import game options
 
 // Platform class extends THREE.Group
 export class Platform extends THREE.Group {
+
+    thetaLength : number;   // theta length, in radians
     
     constructor(posY : number) {
         
@@ -17,10 +19,10 @@ export class Platform extends THREE.Group {
         });
             
         // define the angular length of the platform arc
-        const thetaLength : number = GameOptions.minThetaLength + Math.random() * (GameOptions.maxThetaLength - GameOptions.minThetaLength); 
+        this.thetaLength = GameOptions.minThetaLength + Math.random() * (GameOptions.maxThetaLength - GameOptions.minThetaLength); 
           
         // create the curved surface of the platform using a cylinder segment
-        const cylinderGeometry: THREE.CylinderGeometry = new THREE.CylinderGeometry(GameOptions.platformRadius, GameOptions.platformRadius, GameOptions.platformHeight, 32, 1, false, 0, thetaLength);
+        const cylinderGeometry: THREE.CylinderGeometry = new THREE.CylinderGeometry(GameOptions.platformRadius, GameOptions.platformRadius, GameOptions.platformHeight, 32, 1, false, 0, this.thetaLength);
             
         // create a mesh with the cylinder geometry and material
         const cylinder: THREE.Mesh = new THREE.Mesh(cylinderGeometry, material);
@@ -32,32 +34,24 @@ export class Platform extends THREE.Group {
         // add the cylinder to the platform group
         this.add(cylinder);
           
-        // create the first side plane to close the cylinder slice
-        const side1: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(GameOptions.platformRadius, GameOptions.platformHeight), material);
-        side1.position.x = 0
-        side1.position.z = GameOptions.platformRadius / 2;
-        side1.rotation.y = - Math.PI / 2;
-        
-        // side1 casts and receives shadows
-        side1.castShadow = true;
-        side1.receiveShadow = true;
-        
-        // add the side to the platform group
-        this.add(side1);
-          
-        // create the second side plane to close the cylinder slice
-        const side2: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(GameOptions.platformRadius, GameOptions.platformHeight), material);
-        side2.position.x = Math.sin(thetaLength) * GameOptions.platformRadius / 2;
-        side2.position.z = Math.cos(thetaLength) * GameOptions.platformRadius / 2;
-        side2.rotation.y = thetaLength - Math.PI * 3 / 2;
-        
-        // side2 casts and receives shadows
-        side2.castShadow = true;
-        side2.receiveShadow = true;
-        
-        // add the side to the platform group
-        this.add(side2);
+        // gap material, where te ball should land
+        const gapMaterial : THREE.MeshStandardMaterial = new THREE.MeshStandardMaterial({
+            color : GameOptions.gapColor 
+        });
 
+        // create the complementary curved surface of the platform using a cylinder segment
+        const gapGeometry: THREE.CylinderGeometry = new THREE.CylinderGeometry(GameOptions.platformRadius, GameOptions.platformRadius, GameOptions.platformHeight, 32, 1, false, this.thetaLength, Math.PI * 2 - this.thetaLength);
+
+        // create a mesh with the cylinder geometry and material
+        const gap : THREE.Mesh = new THREE.Mesh(gapGeometry, gapMaterial);
+
+        // the gap casts and receives shadows
+        gap.castShadow = true;
+        gap.receiveShadow = true;
+
+        // add the gap to the platform group
+        this.add(gap);
+        
         // place the platform vertically
         this.position.y = posY;
            
