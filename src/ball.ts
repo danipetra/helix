@@ -22,7 +22,7 @@ export class Ball extends THREE.Mesh {
         this.castShadow = true;
 
         // place the ball
-        this.position.set(0, 5, GameOptions.platformRadius - GameOptions.ballRadius);
+        this.position.set(0, 2, GameOptions.platformRadius - GameOptions.ballRadius);
 
         // set ball velocity at zero
         this.velocity = 0;
